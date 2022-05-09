@@ -1,3 +1,7 @@
+# Во всех классах и методах согласно pep 8 должны быть docstring
+# (https://peps.python.org/pep-0257/)
+
+
 # Можно написать "from datetime import datetime as dt", то есть импортировать
 # не сам модуль datetime, а класс внутри него, чтобы сократить код, где идет
 # работа с датой.
@@ -7,12 +11,13 @@ import datetime as dt
 class Record:
     # Здесь лучше не date='', а date=None.
     #
-    # None хорош тем, что он имеет четкое назначение - задать логически
-    # "отсутствие" чего-нибудь.  Если мы видим в сигнатуре функции (часть
-    # функции, содержащая имя и параметры) что один из параметров будет
-    # по умолчанию равен None, то мы можем с уверенностью предположить,
-    # что далее в теле функции этот параметр будет проверяться на истинность
-    # (или на соответствие самому None) в условии с if.
+    # None хорош тем, что он имеет четкое назначение - представить отсутствие
+    # (https://docs.python.org/3/library/constants.html#None).  Если мы видим
+    # в сигнатуре функции (часть функции, содержащая имя и параметры) что один
+    # из параметров будет по умолчанию равен None, то мы можем с уверенностью
+    # предположить, что далее в теле функции этот параметр будет проверяться
+    # на истинность (или на соответствие самому None) в условии с if.
+    #
     # Например:
     #
     # if date:
@@ -39,6 +44,7 @@ class Record:
     # Задумайтесь, почему вы написали именно date='', а не date=0, например?
     # Возможно, вы тем самым хотели указать на то, что date должен быть
     # строкой.  Но для этой цели в Python есть type annotations.
+    # (https://docs.python.org/3/library/typing.html)
     def __init__(self, amount, comment, date=''):
         self.amount = amount
         # Лучше читается так:
@@ -82,12 +88,13 @@ class Calculator:
         #    if record.date == dt.datetime.now().date()
         # )
         today_stats = 0
-        # В большинстве случаев, переменная в цикле for должна начинаться с
-        # маленькой буквы. Более того, имя Record уже используется (объявление
+        # Переменная в цикле for должна писаться в нижнем регистре в
+        # большинстве случаев (если переменная не указывает на класс).
+        # Кроме того, имя Record уже используется (объявление
         # класса Record).  Правильнее будет for record in self.records:
         for Record in self.records:
             if Record.date == dt.datetime.now().date():
-                # Более читабельно today_stats += record.amount
+                # Лучше today_stats += record.amount
                 today_stats = today_stats + Record.amount
         return today_stats
 
@@ -99,28 +106,31 @@ class Calculator:
             # В Python можно написать if 0 <= (today - record.date).days < 7:
             # что лучше читается
             if (
-                (today - record.date).days < 7 and
-                (today - record.date).days >= 0
+                    (today - record.date).days < 7 and
+                    (today - record.date).days >= 0
             ):
                 week_stats += record.amount
         return week_stats
 
 
 class CaloriesCalculator(Calculator):
-    # Комментарий ниже лучше оформить в виде docstring, потому что это
-    # описание того, что делает функция.
+    # Комментарий ниже лучше оформить в виде docstring.
+    # (https://peps.python.org/pep-0257/)
     def get_calories_remained(self):  # Получает остаток калорий на сегодня
+        # Название переменной не подсказывает нам, для чего она нужна.  Можно
+        # было назвать, например, calories_remained
         x = self.limit - self.get_today_stats()
         if x > 0:
             # Согласно PEP 8, для продолжения строки кода лучше оборачивать
             # ее в круглые скобки вместо обратного слэша в конце.
+            # (https://peps.python.org/pep-0008/#maximum-line-length)
             return f'Сегодня можно съесть что-нибудь' \
                    f' ещё, но с общей калорийностью не более {x} кКал'
-        # Ненужный else
+        # else не нужен, можно оставить только выражение с return.
         else:
             # Ненужные скобки.  Выражение ассоциируется с кортежем, а не
             # строкой.
-            return('Хватит есть!')
+            return ('Хватит есть!')
 
 
 class CashCalculator(Calculator):
@@ -147,11 +157,11 @@ class CashCalculator(Calculator):
         currency_type = currency
         cash_remained = self.limit - self.get_today_stats()
         # В ситуации, когда у нас множество однотипных блоков elif можно
-        # использовать прием со словарем вместо блока if-elif-else:
+        # использовать прием со словарем вместо длинного блока if-elif-else:
         #
         #         currency_to_rate_and_type = {
         #             'usd': (self.USD_RATE, 'USD'),
-        #             'eur': (self.EURO_RATE, 'USD'),
+        #             'eur': (self.EURO_RATE, 'Euro'),
         #             'rub': (1, 'руб'),
         #         }
         #         try:
@@ -160,12 +170,13 @@ class CashCalculator(Calculator):
         #             return 'Неправильный выбор'
         #         cash_remained = (self.limit - self.get_today_stats()) / rate
         #
-        # Такой подход дает ряд преимуществ: Легче добавить новую валюту,
+        # Такой подход имеет ряд преимуществ: Легче добавить новую валюту,
         # меньше риск сделать ошибку, легче читать код.  Также можно
         # присмотреться к pattern matching в Python 3.10
+        # (https://peps.python.org/pep-0622/).
         #
-        #
-        #
+        # Также было бы неплохо добавить проверку на допустимость передаваемой
+        # валюты.  Что нужно делать, если в currency, например, передали pln?
         if currency == 'usd':
             cash_remained /= USD_RATE
             currency_type = 'USD'
@@ -173,8 +184,7 @@ class CashCalculator(Calculator):
             cash_remained /= EURO_RATE
             currency_type = 'Euro'
         elif currency_type == 'rub':
-            # Ошибка. Правильно cash_remained /= 1.00, или просто убрать эту
-            # строку
+            # Ненужная строка
             cash_remained == 1.00
             currency_type = 'руб'
         if cash_remained > 0:
@@ -189,11 +199,13 @@ class CashCalculator(Calculator):
             )
         elif cash_remained == 0:
             return 'Денег нет, держись'
+        # Последний elif не нужен, можно оставить только выражение с return.
         elif cash_remained < 0:
             # Вместо .format() лучше использовать f-строку, как и было выше.
             #
             # Согласно PEP 8, для продолжения строки кода лучше оборачивать
             # ее в круглые скобки вместо обратного слэша в конце.
+            # (https://peps.python.org/pep-0008/#maximum-line-length)
             return 'Денег нет, держись:' \
                    ' твой долг - {0:.2f} {1}'.format(-cash_remained,
                                                      currency_type)
@@ -201,5 +213,5 @@ class CashCalculator(Calculator):
     def get_week_stats(self):
         # Метод .get_week_stats() уже имеется в родительском классе Calculator,
         # и переопределять его не нужно.  К тому же не хватает return в начале
-        # строки
+        # строки, чтобы метод возвращал значение.
         super().get_week_stats()
